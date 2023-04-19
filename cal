@@ -1,0 +1,133 @@
+#define _CRT_SECURE_NO_WARNINGS 1
+
+#include <stdio.h>
+#include<string.h>
+#include<stdlib.h>
+
+
+float num[101];
+char ch[101];//符号
+int numtop = -1;
+int chtop = -1;
+
+float cal(float a, float b, char c)//计算
+{
+	if (c == '+')
+	{
+		return a + b;
+	}
+	if (c == '-')
+	{
+		return a - b;
+	}
+	if (c == '*')
+	{
+		return a * b;
+	}
+	if (c == '/')
+	{
+		return a / b;
+	}
+}
+
+int match(char a)//优先级打表（我是只会打表的菜狗
+{
+	if (a == '+' || a == '-')
+		return 1;
+	if (a == '*' || a == '/')
+		return 2;
+	if (a == '(' )
+		return 0;
+	
+}
+int chcmp(char a, char b)//优先级比较
+{
+	return (match(a) < match(b)) ? 0 : 1;
+}
+
+int ele(char c, int flag)//输入的c类型
+{
+	if (c <= '9' && c >= '0')//数字
+	{
+		if (numtop >= 0 && flag == 1)//不是第一个元素且上一个是数字
+		{
+			num[numtop] = num[numtop] * 10 + c - '0';//多位数
+		}
+		else
+		{
+			num[++numtop] = c - '0';//单个数字
+		}
+		return 1;
+	}
+	else if (c == '(')
+	{
+		ch[++chtop] = c;
+		return 0;
+	}
+	else if (c == ')')
+	{
+		while (ch[chtop] != '(')//遍历到左括号
+		{
+			int numtop1 = numtop;
+			numtop -= 1;
+			int numtop2 = numtop;
+			numtop -= 1;
+			float temp = cal(num[numtop2], num[numtop1], ch[chtop--]);
+			num[++numtop] = temp;
+		}
+		chtop--;
+		return 0;
+	}
+	else if (c == '+' || c == '-' || c == '*' || c == '/')
+	{
+		if (chtop >= 0)
+		{
+			while (1 == chcmp(ch[chtop], c))//优先级低于栈顶
+			{
+				int numtop1 = numtop;
+				numtop -= 1;
+				int numtop2 = numtop;
+				numtop -= 1;
+				float temnum = cal(num[numtop2], num[numtop1], ch[chtop--]);
+				num[++numtop] = temnum;
+				if (chtop == -1)
+					break;
+			}
+			ch[++chtop] = c;//入栈
+		}
+		else
+		{
+			ch[++chtop] = c;
+		}
+		return 0;
+	}
+	else if (c == '=')
+		return 2;
+	else
+		return 0;
+}
+
+int main()
+{
+	char c;
+	float ans = 0;
+	int flagc = 0;
+	while (c = getchar())//读取并入栈
+	{
+		flagc = ele(c, flagc);
+		if (flagc == 2)
+			break;
+	}
+	while (chtop != -1 && numtop != 0)//最后逐个出栈计算
+	{
+		int numtop1 = numtop;
+		numtop -= 1;
+		int numtop2 = numtop;
+		numtop -= 1;
+		ans = cal(num[numtop2], num[numtop1], ch[chtop--]);
+		num[++numtop] = ans;
+	}
+	printf("%.2f", ans);
+	return 0;
+}
+
